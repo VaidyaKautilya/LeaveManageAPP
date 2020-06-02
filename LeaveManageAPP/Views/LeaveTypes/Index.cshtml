@@ -1,0 +1,85 @@
+﻿@model IEnumerable<LeaveManageAPP.Repository.LeaveTypeVM>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .MyColor:hover {
+        color: #127ba6;
+        cursor: pointer;
+    }
+</style>
+<h1 class="MyColor"
+    data-toggle="tooltip"
+    data-html="true"
+    title="This Page is about Leave Types">Leave Types
+</h1>
+
+<p>
+    <a asp-action="Create"
+       class="btn btn-success"
+       data-toggle="tooltip"
+       data-html="true"
+       title="By clicking me You can add another leave Types">
+        <i class="fa fa-plus" aria-hidden="true"></i> 
+        Create New
+    </a>
+</p>
+<table id="tblData"  class="table table-striped table-bordered" style="width:100%">
+    <thead>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.DateCreated)
+        </th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model) {
+        <tr>
+           
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DateCreated)
+            </td>
+            <td>
+                <a 
+                    asp-action="Edit" 
+                    class="btn btn-warning" 
+                    asp-route-id="@item.Id"
+                    data-toggle="tooltip"
+                    data-html="true"
+                    title="By clicking me You can Edit Name of this Leave Types">
+                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                </a>
+                <a 
+                    asp-action="Details" 
+                    class="btn btn-info" 
+                    asp-route-id="@item.Id"
+                    data-toggle="tooltip"
+                    data-html="true"
+                    title="Click me for more information about this Leave Type">
+                    <i class="fa fa-info-circle" aria-hidden="true"></i>
+                </a>
+                <a 
+                    asp-action="Delete" 
+                    class="btn btn-danger" 
+                    asp-route-id="@item.Id" 
+                    data-toggle="tooltip"
+                    data-html="true"
+                    title="Click me for Delete this Leave Types"
+                    onclick="return confirm('Are you sure you want to delete this record?')">
+                    <i class="fa fa-trash" aria-hidden="true"></i>
+                </a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
