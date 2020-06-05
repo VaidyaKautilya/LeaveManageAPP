@@ -71,6 +71,7 @@ namespace LeaveManageAPP.Areas.Identity.Pages.Account
             [Display(Name = "Last Name")]
             public string LastName { get; set; }
 
+
         }
 
         public async Task OnGetAsync(string returnUrl = null)
@@ -85,8 +86,9 @@ namespace LeaveManageAPP.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
+                
                 var user = new Employee 
-                    { UserName = Input.Email, Email = Input.Email ,Firstname = Input.FirstName,Lastname = Input.LastName};
+                    { UserName = Input.Email, Email = Input.Email ,Firstname = Input.FirstName,Lastname = Input.LastName , DateJoined = DateTime.Now};
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
