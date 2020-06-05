@@ -15,11 +15,10 @@ namespace LeaveManageAPP.Controllers
     {
         private readonly ILeaveTypeRepository _repo;
         private readonly IMapper _mapper;
-
-        public LeaveTypesController(IMapper mapper, ILeaveTypeRepository repo)
+        public LeaveTypesController(ILeaveTypeRepository repo, IMapper mapper)
         {
-            _mapper = mapper;
             _repo = repo;
+            _mapper = mapper;
         }
 
         // GET: LeaveTypesController
