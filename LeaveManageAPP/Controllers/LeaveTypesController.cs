@@ -6,11 +6,13 @@ using AutoMapper;
 using LeaveManageAPP.Contracts;
 using LeaveManageAPP.Data;
 using LeaveManageAPP.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LeaveManageAPP.Controllers
 {
+    [Authorize(Roles = "Administrator")]
     public class LeaveTypesController : Controller
     {
         private readonly ILeaveTypeRepository _repo;
