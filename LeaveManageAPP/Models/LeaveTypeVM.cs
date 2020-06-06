@@ -11,7 +11,11 @@ namespace LeaveManageAPP.Repository
         public int Id { get; set; }
         [Required]
         public string Name { get; set; }
-        [Display(Name = "Date Created")]
+        [Required]
+        [Display(Name = "Default Days")]
+        [Range(1,23,ErrorMessage = "Please Enter valid Number")]
+        public int DefaultDays { get; set; }
+        [Display(Name = "Date Created")] 
         public DateTime? DateCreated { get; set; }
     }
 }
