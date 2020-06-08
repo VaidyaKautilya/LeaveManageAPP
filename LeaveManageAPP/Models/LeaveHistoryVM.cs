@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using LeaveManageAPP.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace LeaveManageAPP.Repository
+namespace LeaveManageAPP.Models
 {
     public class LeaveHistoryVM
     {

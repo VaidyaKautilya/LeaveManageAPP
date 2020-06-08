@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using LeaveManageAPP.Contracts;
 using LeaveManageAPP.Data;
+using LeaveManageAPP.Models;
 using LeaveManageAPP.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

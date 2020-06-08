@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using LeaveManageAPP.Contracts;
 using LeaveManageAPP.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace LeaveManageAPP.Repository
 {
@@ -18,7 +19,7 @@ namespace LeaveManageAPP.Repository
 
         public ICollection<LeaveAllocation> FindAll()
         {
-            var leaveAllocations = _db.LeaveAllocations.ToList();
+            var leaveAllocations = _db.LeaveAllocations.Include(q => q.LeaveType).ToList();
             return leaveAllocations;
         }
 
@@ -56,6 +57,20 @@ namespace LeaveManageAPP.Repository
         {
             var changes = _db.SaveChanges();
             return changes > 0;
+        }
+
+        public bool CheckAllocation(int leaveTypeid, string employeeId)
+        {
+            var period = DateTime.Now.Year;
+            return FindAll().
+                Where(x => x.LeaveTypeId == leaveTypeid && x.EmployeeId == employeeId && x.Period == period)
+                .Any();
+        }
+
+        public ICollection<LeaveAllocation> GetLeaveAllocationsByEmployee(string Id)
+        {
+            var period = DateTime.Now.Year;
+            return FindAll().Where(q => q.EmployeeId == Id && q.Period == period).ToList();
         }
     }
 }

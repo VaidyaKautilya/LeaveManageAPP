@@ -38,7 +38,7 @@ namespace LeaveManageAPP
             services.AddScoped<ILeaveAllocationRepository, LeaveAllocationRepository>();
             services.AddScoped<ILeaveHistoryRepository, LeaveHistoryRepository>();
             services.AddAutoMapper(typeof(Maps));
-            services.AddDefaultIdentity<IdentityUser>()
+            services.AddDefaultIdentity<Employee>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
@@ -50,7 +50,7 @@ namespace LeaveManageAPP
         public void Configure(
             IApplicationBuilder app, 
             IWebHostEnvironment env,
-            UserManager<IdentityUser> userManager , 
+            UserManager<Employee> userManager , 
             RoleManager<IdentityRole> roleManager)
         {
             if (env.IsDevelopment())
