@@ -1,0 +1,237 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using AutoMapper;
+using LeaveManageAPP.Contracts;
+using LeaveManageAPP.Data;
+using LeaveManageAPP.Models;
+using LeaveManageAPP.Repository;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace LeaveManageAPP.Controllers
+{
+    [Authorize]
+    public class LeaveRequestController : Controller
+    {
+        // GET: LeaveRequestController
+        private readonly ILeaveRequestRepository _leaverequestrepo;
+        private readonly IMapper _mapper;
+        private readonly UserManager<Employee> _userManager;
+        private readonly ILeaveTypeRepository _leaveTypeRepository;
+        private readonly ILeaveAllocationRepository _leaveAllocationrepo;
+        public LeaveRequestController(ILeaveRequestRepository leaverequestrepo, IMapper mapper, UserManager<Employee> userManager, ILeaveTypeRepository leaveTypeRepository, ILeaveAllocationRepository leaveAllocationrepo)
+        {
+            _leaverequestrepo = leaverequestrepo;
+            _mapper = mapper;
+            _userManager = userManager;
+            _leaveTypeRepository = leaveTypeRepository;
+            _leaveAllocationrepo = leaveAllocationrepo;
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public ActionResult Index()
+        {
+            var leaverequests = _leaverequestrepo.FindAll();
+            var leaverequestModel = _mapper.Map<List<LeaveRequestVM>>(leaverequests);
+            var model = new AdminLeaveRequestVM
+            {
+                TotalRequests = leaverequestModel.Count,
+                ApprovedRequests = leaverequestModel.Count(q => q.Approved == true),
+                PendingRequests = leaverequestModel.Count(q => q.Approved == null),
+                RejectedRequests = leaverequestModel.Count(q => q.Approved == false),
+                LeaveRequests = leaverequestModel
+            };
+            return View(model);
+        }
+
+        // GET: LeaveRequestController/Details/5
+        public ActionResult Details(int id)
+        {
+            var leaveRequest = _leaverequestrepo.FindById(id);
+            var model = _mapper.Map<LeaveRequestVM>(leaveRequest);
+            return View(model);
+        }
+
+        // GET: LeaveRequestController/Create
+        public ActionResult Create()
+        {
+            var leaveTypes = _leaveTypeRepository.FindAll();
+            var leaveTypeItems = leaveTypes.Select(q => new SelectListItem
+            {
+                Text = q.Name,
+                Value = q.Id.ToString()
+            });
+
+            var modal = new CreateLeaveRequestVM
+            {
+                LeaveTypes = leaveTypeItems
+            };
+            return View(modal);
+        }
+
+        // POST: LeaveRequestController/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(CreateLeaveRequestVM modal)
+        {
+
+            try
+            {
+                var startDate = Convert.ToDateTime(modal.StartDate);
+                var endDate = Convert.ToDateTime(modal.EndDate);
+                var leaveTypes = _leaveTypeRepository.FindAll();
+                var leaveTypeItems = leaveTypes.Select(q => new SelectListItem
+                {
+                    Text = q.Name,
+                    Value = q.Id.ToString()
+                });
+                modal.LeaveTypes = leaveTypeItems;
+
+                if (!ModelState.IsValid)
+                {
+                    return View(modal);
+                }
+
+                if (DateTime.Compare(startDate, endDate) > 1)
+                {
+                    ModelState.AddModelError("", "Start Date cannot be further in the future than the End Date");
+                    return View(modal);
+                }
+
+                var employee = _userManager.GetUserAsync(User).Result;
+                var allocation = _leaveAllocationrepo.GetLeaveAllocationsByEmployeeAndType(employee.Id, modal.LeaveTypeId);
+                int daysRequested = (int)(endDate - startDate).TotalDays;
+
+                if (daysRequested > allocation.NumberOfDays)
+                {
+                    ModelState.AddModelError("", "You Do Not Sufficient Days For This Request");
+                    return View(modal);
+                }
+
+                var leaveRequestModel = new LeaveRequestVM
+                {
+                    RequestingEmployeeId = employee.Id,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    Approved = null,
+                    DateRequested = DateTime.Now,
+                    DateActioned = DateTime.Now,
+                    LeaveTypeId = modal.LeaveTypeId
+                    // RequestComments = model.RequestComments
+                };
+
+                var leaveRequest = _mapper.Map<LeaveRequest>(leaveRequestModel);
+                var isSuccess = _leaverequestrepo.Create(leaveRequest);
+
+                if (!isSuccess)
+                {
+                    ModelState.AddModelError("", "Something went wrong with submitting your record");
+                    return View(modal);
+                }
+
+                 return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Something went wrong");
+                Console.WriteLine(ex);
+                return View(modal);
+            }
+        }
+
+        // GET: LeaveRequestController/Edit/5
+        public ActionResult Edit(int id)
+        {
+            return View();
+        }
+
+        // POST: LeaveRequestController/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(int id, IFormCollection collection)
+        {
+            try
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                return View();
+            }
+        }
+
+        // GET: LeaveRequestController/Delete/5
+        public ActionResult Delete(int id)
+        {
+            return View();
+        }
+
+        // POST: LeaveRequestController/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int id, IFormCollection collection)
+        {
+            try
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                return View();
+            }
+        }
+
+        public ActionResult ApproveRequest(int id)
+        {
+            try
+            {
+                var user = _userManager.GetUserAsync(User).Result;
+                var leaveRequest = _leaverequestrepo.FindById(id);
+                var employeeId = leaveRequest.RequestingEmployeeId;
+                var allocation = _leaveAllocationrepo.GetLeaveAllocationsByEmployee(employeeId);
+                leaveRequest.Approved = true;
+                leaveRequest.ApprovedById = user.Id;
+                leaveRequest.DateActioned = DateTime.Now;
+
+                var isSuccess = _leaverequestrepo.Update(leaveRequest);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Something went wrong..!!");
+                Console.WriteLine(ex);
+                return RedirectToAction("Index");
+
+            }
+
+        }
+
+        public ActionResult RejectRequest(int id)
+        {
+            try
+            {
+                var user = _userManager.GetUserAsync(User).Result;
+                var leaveRequest = _leaverequestrepo.FindById(id);
+                leaveRequest.Approved = false;
+                leaveRequest.ApprovedById = user.Id;
+                leaveRequest.DateActioned = DateTime.Now;
+
+                var isSuccess = _leaverequestrepo.Update(leaveRequest);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Something went wrong..!!");
+                Console.WriteLine(ex);
+                return RedirectToAction("Index");
+
+            }
+        }
+    }
+}

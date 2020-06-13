@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LeaveManageAPP.Data
 {
-    public class LeaveHistory
+    public class LeaveRequest
     {
         [Key]
         public int Id { get; set; }
