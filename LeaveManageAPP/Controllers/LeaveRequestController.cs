@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Routing;
 
 namespace LeaveManageAPP.Controllers
 {
@@ -122,8 +123,8 @@ namespace LeaveManageAPP.Controllers
                     Approved = null,
                     DateRequested = DateTime.Now,
                     DateActioned = DateTime.Now,
-                    LeaveTypeId = modal.LeaveTypeId
-                    // RequestComments = model.RequestComments
+                    LeaveTypeId = modal.LeaveTypeId,
+                    RequestComments = modal.RequestComments
                 };
 
                 var leaveRequest = _mapper.Map<LeaveRequest>(leaveRequestModel);
@@ -135,7 +136,7 @@ namespace LeaveManageAPP.Controllers
                     return View(modal);
                 }
 
-                 return RedirectToAction("Index", "Home");
+                 return RedirectToAction("MyLeave");
             }
             catch (Exception ex)
             {
@@ -194,12 +195,17 @@ namespace LeaveManageAPP.Controllers
                 var user = _userManager.GetUserAsync(User).Result;
                 var leaveRequest = _leaverequestrepo.FindById(id);
                 var employeeId = leaveRequest.RequestingEmployeeId;
-                var allocation = _leaveAllocationrepo.GetLeaveAllocationsByEmployee(employeeId);
+                var leaveTypeId = leaveRequest.LeaveTypeId;
+                var allocation = _leaveAllocationrepo.GetLeaveAllocationsByEmployeeAndType(employeeId,leaveTypeId);
+                int daysRequested = (int) (leaveRequest.EndDate - leaveRequest.StartDate).TotalDays;
+                allocation.NumberOfDays -= daysRequested;
+
                 leaveRequest.Approved = true;
                 leaveRequest.ApprovedById = user.Id;
                 leaveRequest.DateActioned = DateTime.Now;
+                _leaverequestrepo.Update(leaveRequest);
 
-                var isSuccess = _leaverequestrepo.Update(leaveRequest);
+                _leaveAllocationrepo.Update(allocation);
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -222,7 +228,7 @@ namespace LeaveManageAPP.Controllers
                 leaveRequest.ApprovedById = user.Id;
                 leaveRequest.DateActioned = DateTime.Now;
 
-                var isSuccess = _leaverequestrepo.Update(leaveRequest);
+                _leaverequestrepo.Update(leaveRequest);
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -232,6 +238,32 @@ namespace LeaveManageAPP.Controllers
                 return RedirectToAction("Index");
 
             }
+        }
+
+        public ActionResult MyLeave()
+        {
+            var employee = _userManager.GetUserAsync(User).Result;
+            var employeeId = employee.Id;
+            var employeeAllocations = _leaveAllocationrepo.GetLeaveAllocationsByEmployee(employeeId);
+            var employeeRequests = _leaverequestrepo.GetLeaveRequestsByEmployee(employeeId);
+
+            var employeeAllocationsModel = _mapper.Map<List<LeaveAllocationVM>>(employeeAllocations);
+            var employeeRequestModel = _mapper.Map<List<LeaveRequestVM>>(employeeRequests);
+            var model =  new EmployeeLeaveRequestViewVM
+            {
+                LeaveAllocations = employeeAllocationsModel,
+                LeaveRequests = employeeRequestModel
+            };
+            return View(model);
+        }
+
+        public ActionResult CancelRequest(int id)
+        {
+            var leaveRequest = _leaverequestrepo.FindById(id);
+            leaveRequest.Cancelled = true;
+            _leaverequestrepo.Update(leaveRequest);
+            return RedirectToAction("MyLeave");
+
         }
     }
 }

@@ -66,5 +66,12 @@ namespace LeaveManageAPP.Repository
             var changes = _db.SaveChanges();
             return changes > 0;
         }
+
+        public ICollection<LeaveRequest> GetLeaveRequestsByEmployee(string employeeId)
+        {
+            var leaveRequests = FindAll().Where(q => q.RequestingEmployeeId == employeeId)
+                .ToList();
+            return leaveRequests;
+        }
     }
 }
