@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Index";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_AdminLTE.cshtml";
 }
 <style>
     .MyColor:hover {
@@ -56,7 +56,7 @@
                     data-toggle="tooltip"
                     data-html="true"
                     title="By clicking me You can Edit Name of this Leave Types">
-                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                    <i class="fas fa-pencil-alt" aria-hidden="true"></i>
                 </a>
                 <a 
                     asp-action="Details" 
@@ -65,7 +65,7 @@
                     data-toggle="tooltip"
                     data-html="true"
                     title="Click me for more information about this Leave Type">
-                    <i class="fa fa-info-circle" aria-hidden="true"></i>
+                    <i class="fas fa-info-circle" aria-hidden="true"></i>
                 </a>
                 <a 
                     asp-action="Delete" 
@@ -75,7 +75,7 @@
                     data-html="true"
                     title="Click me for Delete this Leave Types"
                     onclick="return confirm('Are you sure you want to delete this record?')">
-                    <i class="fa fa-trash" aria-hidden="true"></i>
+                    <i class="fas fa-trash" aria-hidden="true"></i>
                 </a>
             </td>
         </tr>
