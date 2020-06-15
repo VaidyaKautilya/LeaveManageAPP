@@ -25,22 +25,24 @@ namespace LeaveManageAPP.Controllers
         }
 
         // GET: LeaveTypesController
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            var leavetypes = _repo.FindAll().ToList();
-            var model = _mapper.Map<List<LeaveType>, List<LeaveTypeVM>>(leavetypes);
+            var leavetypes = await _repo.FindAll();
+            var activeleaves = _repo.GetActiveLeaveList();
+            var model = _mapper.Map<List<LeaveType>, List<LeaveTypeVM>>(leavetypes.ToList());
             return View(model);
         }
 
         // GET: LeaveTypesController/Details/5
-        public ActionResult Details(int id)
+        public async Task<ActionResult> Details(int id)
         {
-            if (!_repo.isExists(id))
+            var isExists = await _repo.isExists(id);
+            if (!isExists)
             {
                 return NotFound();
             }
 
-            var leaveType = _repo.FindById(id);
+            var leaveType =await _repo.FindById(id);
             var model = _mapper.Map<LeaveTypeVM>(leaveType);
             return View(model);
         }
@@ -54,7 +56,7 @@ namespace LeaveManageAPP.Controllers
         // POST: LeaveTypesController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(LeaveTypeVM model)
+        public async Task<ActionResult> Create(LeaveTypeVM model)
         {
             try
             {
@@ -65,7 +67,7 @@ namespace LeaveManageAPP.Controllers
 
                 var leaveType = _mapper.Map<LeaveType>(model);
                 leaveType.DateCreated = DateTime.Now;
-                var isSuccess = _repo.Create(leaveType);
+                var isSuccess = await  _repo.Create(leaveType);
                 if (!isSuccess)
                 {
                     ModelState.AddModelError("","Something went wrong...");
@@ -80,24 +82,23 @@ namespace LeaveManageAPP.Controllers
         }
 
         // GET: LeaveTypesController/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> Edit(int id)
         {
-            if (!_repo.isExists(id))
+            var isExists = await _repo.isExists(id);
+            if (!isExists)
             {
                 return NotFound();
             }
 
-            var leaveType = _repo.FindById(id);
+            var leaveType = await _repo.FindById(id);
             var model = _mapper.Map<LeaveTypeVM>(leaveType);
-
-
             return View(model);
         }
 
         // POST: LeaveTypesController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(LeaveTypeVM model)
+        public async Task<ActionResult> Edit(LeaveTypeVM model)
         {
             try
             {
@@ -107,7 +108,7 @@ namespace LeaveManageAPP.Controllers
                 }
 
                 var leaveType = _mapper.Map<LeaveType>(model);
-                var isSuccess = _repo.Update(leaveType);
+                var isSuccess =await _repo.Update(leaveType);
                 if (!isSuccess)
                 {
                     ModelState.AddModelError("", "Something went wrong");
@@ -124,27 +125,36 @@ namespace LeaveManageAPP.Controllers
         }
 
         // GET: LeaveTypesController/Delete/5
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            if (!_repo.isExists(id))
+            try
             {
-                return NotFound();
-            }
+                var isExists = await _repo.isExists(id);
+                if (!isExists)
+                {
+                    return NotFound();
+                }
 
-            var leaveType = _repo.FindById(id);
-            var model = _mapper.Map<LeaveTypeVM>(leaveType);
-            return View(model);
+                var leaveType = await _repo.FindById(id);
+                var model = _mapper.Map<LeaveTypeVM>(leaveType);
+                return View(model);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         // POST: LeaveTypesController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, LeaveTypeVM model)
+        public async Task<ActionResult> Delete(int id, LeaveTypeVM model)
         {
             try
             {
-                var leaveType = _repo.FindById(id);
-                var isSuccess = _repo.Delete(leaveType);
+                var leaveType = await _repo.FindById(id);
+                var isSuccess = await _repo.Delete(leaveType);
                 if (!isSuccess)
                 {
                     return View(model);
