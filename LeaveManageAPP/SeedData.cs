@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LeaveManageAPP.Data;
+﻿using LeaveManageAPP.Data;
 using Microsoft.AspNetCore.Identity;
 
 namespace LeaveManageAPP
@@ -41,7 +37,7 @@ namespace LeaveManageAPP
                 {
                     Name = "Administrator"
                 };
-               var result =  roleManager.CreateAsync(role).Result;
+                var result = roleManager.CreateAsync(role).Result;
             }
 
             if (!roleManager.RoleExistsAsync("Employee").Result)
@@ -53,7 +49,7 @@ namespace LeaveManageAPP
                 var result = roleManager.CreateAsync(role).Result;
             }
 
-            
+
         }
 
     }
